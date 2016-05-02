@@ -30,23 +30,46 @@ FacebookPlatform.prototype.messageRequest = function (req, res) {
 };
 
 FacebookPlatform.prototype.processEvent = function(rawEvent) {
+
+  var context = {
+    sessionId: rawEvent.sender.id,
+  };
+  var event;
+
   if (rawEvent.message && rawEvent.message.text) {
-    var context = {
-      sessionId: rawEvent.sender.id,
-    };
-    var event = { 
+    event = {
+      type: 'message',
       message: rawEvent.message.text,
       page: rawEvent.recipient.id
     };
+  } else if (rawEvent.optin) {
+    event = {
+      type: 'authenticate',
+      page: rawEvent.recipient.id
+    };
+  } else if (rawEvent.postback) {
+    event = {
+      type: 'action',
+      action: rawEvent.postback.payload,
+      message: rawEvent.postback.payload,
+      page: rawEvent.recipient.id
+    };
+  }
+
+  if (event) {
     this.bot(this, context, event, function(err, context, event, cb) {
-      if (err) {
-        event.send(context, event, "Uh oh! Something went wrong!", function(err, context, event, response) {
-          cb(err, context, event);
-        });
-      } else {
-        cb(err, context, event);
-      }
+      this.finishProcessEvent(err, context, event, cb);
     });
+  }
+};
+
+FacebookPlatform.prototype.finishProcessEvent = function(err, context, event, cb) {
+  if (err) {
+    event.send(context, event, "Uh oh! Something went wrong!", function(err, context, event, response) {
+      cb(err, context, event);
+    });
+  } else {
+    cb(err, context, event);
   }
 };
 
