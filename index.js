@@ -59,7 +59,7 @@ FacebookPlatform.prototype.processEvent = function(rawEvent) {
   if (event) {
     this.bot(this, context, event, function(err, context, event, cb) {
       this.finishProcessEvent(err, context, event, cb);
-    });
+    }.bind(this));
   }
 };
 
