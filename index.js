@@ -75,7 +75,7 @@ FacebookPlatform.prototype.finishProcessEvent = function(err, context, event, cb
 
 FacebookPlatform.prototype.createMessage = function(event) {
   var messageData;
-  if (event.type !== "string") {
+  if (typeof event !== "string") {
     messageData = {
       text: event.message
     };
