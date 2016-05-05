@@ -1,6 +1,6 @@
 {
   "name": "yowl-platform-facebook",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Yowl platform connection for Facebook",
   "main": "index.js",
   "scripts": {
