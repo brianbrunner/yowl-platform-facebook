@@ -59,7 +59,7 @@ FacebookPlatform.prototype.processEvent = function(rawEvent) {
   if (event) {
     this.bot(this, context, event, function(err, context, event, cb) {
       this.finishProcessEvent(err, context, event, cb);
-    });
+    }.bind(this));
   }
 };
 
@@ -75,7 +75,7 @@ FacebookPlatform.prototype.finishProcessEvent = function(err, context, event, cb
 
 FacebookPlatform.prototype.createMessage = function(event) {
   var messageData;
-  if (event.type !== "string") {
+  if (typeof event !== "string") {
     messageData = {
       text: event.message
     };
