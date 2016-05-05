@@ -65,7 +65,7 @@ FacebookPlatform.prototype.processEvent = function(rawEvent) {
 
 FacebookPlatform.prototype.finishProcessEvent = function(err, context, event, cb) {
   if (err) {
-    event.send(context, event, "Uh oh! Something went wrong!", function(err, context, event, response) {
+    event.send("Uh oh! Something went wrong!", function(err, context, event, response) {
       cb(err, context, event);
     });
   } else {
