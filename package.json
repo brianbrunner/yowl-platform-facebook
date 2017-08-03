@@ -1,6 +1,6 @@
 {
   "name": "yowl-platform-facebook",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Yowl platform connection for Facebook",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/brianbrunner/yowl-platform-facebook#readme",
   "dependencies": {
-    "debug": "^2.2.0",
+    "debug": "^2.6.8",
     "request": "^2.72.0"
   },
   "devDependencies": {

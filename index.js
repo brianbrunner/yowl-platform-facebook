@@ -2,7 +2,7 @@ var debug = require("debug");
 var request = require("request");
 
 var FacebookPlatform = function(options) {
-  this.validationToken = options.validationToken;
+  this.verificationToken = options.verificationToken;
   this.accessToken = options.accessToken;
   this.webhook = options.webhook;
   this.name = "facebook";
@@ -16,7 +16,8 @@ FacebookPlatform.prototype.attach = function(bot) {
 };
 
 FacebookPlatform.prototype.verifyRequest = function (req, res) {
-  if (req.query['hub.verify_token'] === this.validationToken) {
+  if (req.query['hub.mode'] === 'subscribe' &&
+      req.query['hub.verify_token'] === this.verificationToken) {
     res.send(req.query['hub.challenge']);
   } else {
     res.send('Error, wrong validation token');
