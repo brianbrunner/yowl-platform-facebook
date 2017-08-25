@@ -19,7 +19,7 @@ Next, add the facebook platform to your bot.
 ```
 var facebook = require('yowl-platform-facebook');
 
-bot.platform(facebook({ verificationToken: 'verification_token',
-                        accessToken: 'access_token',
-                        webhook: '/webhook/facebook' }));
+bot.extend(facebook({ verificationToken: 'verification_token',
+                      accessToken: 'access_token',
+                      webhook: '/webhook/facebook' }));
 ```
