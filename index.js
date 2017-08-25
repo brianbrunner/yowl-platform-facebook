@@ -5,7 +5,7 @@ var FacebookPlatform = function(options) {
   this.verificationToken = options.verificationToken;
   this.accessToken = options.accessToken;
   this.webhook = options.webhook;
-  this.name = "facebook";
+  this.id = "facebook";
   this.capabilities = ["say", "actions"];
 };
 
@@ -128,7 +128,12 @@ FacebookPlatform.prototype.send = function(context, event, response, cb) {
 
 module.exports = function(options) {
   var platform = new FacebookPlatform(options);
-  return function(bot) {
+  var initFn = function(bot) {
     platform.attach(bot);
   };
+  // Expose characteristics of the platform
+  initFn.id = platform.id;
+  initFn.capabilities = platform.capabilities;
+  initFn.send = platform.send.bind(platform);
+  return initFn;
 };
