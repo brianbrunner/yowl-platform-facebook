@@ -76,21 +76,38 @@ FacebookPlatform.prototype.finishProcessEvent = function(err, context, event, cb
 
 FacebookPlatform.prototype.createMessage = function(event) {
   var messageData;
-  if (typeof event !== "string") {
-    messageData = {
-      text: event.message
-    };
+  if (typeof event === "object") {
+    var messageData = {};
+    if (event.message) {
+      messageData.text = event.message;
+    }
     if (event.actions) {
       messageData.template_type = "button";
-      messageData.actions = msg.actions.map(function(action) {
+      var actions = msg.actions.map(function(action) {
         if (typeof action === "string") {
           return {
             type: "postback",
             title: action,
             payload: action
           };
-        } else {
-          // Handle other types like URLs and shit
+        } else if (typeof action === "object") {
+          if (action.url) {
+            return {
+              type: "web_url",
+              title: action.title,
+              url: action.url,
+              webview_height_ratio: action.webview_height_ratio,
+              messenger_extensions: action.messenger_extensions,
+              fallback_url: actions.fallback_url,
+              webview_share_button: actions.webview_share_button
+            }
+          } else {
+            return {
+              type: "postback",
+              title: action.title,
+              payload: action.payload
+            }
+          }
         }
       });
     }
@@ -103,15 +120,24 @@ FacebookPlatform.prototype.createMessage = function(event) {
 };
 
 FacebookPlatform.prototype.send = function(context, event, response, cb) {
+  var body = {
+    recipient: { id: context.sessionId },
+  }
+
+  if (typeof response.typing !== "undefined") {
+    body.sender_action = (response.typing) ? "typing_on" : "typing_off";
+  }
+
   var messageData = this.createMessage(response);
+  if (Object.keys(messageData).length > 0) {
+    body.message = messageData;
+  }
+
   request({
     url: 'https://graph.facebook.com/v2.6/me/messages',
     qs: { access_token: this.accessToken },
     method: 'POST',
-    json: {
-      recipient: { id: context.sessionId },
-      message: messageData,
-    }
+    json: body
   }, function(err, response, body) {
     debug(err, response, body);
     if (cb) {
