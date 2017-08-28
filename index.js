@@ -6,7 +6,7 @@ var FacebookPlatform = function(options) {
   this.accessToken = options.accessToken;
   this.webhook = options.webhook;
   this.id = "facebook";
-  this.capabilities = ["say", "actions"];
+  this.capabilities = ["say", "actions", "typing", "profile"];
 };
 
 FacebookPlatform.prototype.attach = function(bot) {
@@ -151,6 +151,42 @@ FacebookPlatform.prototype.send = function(context, event, response, cb) {
     }
   });  
 };
+
+FacebookPlatform.PROFILE_FIELDS = [
+  "first_name",
+  "last_name",
+  "profile_pic",
+  "locale",
+  "timezone",
+  "gender",
+  "is_payment_enabled",
+  "last_ad_referral"
+]
+
+FacebookPlatform.prototype.profile = function(sessionId, cb) {
+  request({
+    url: 'https://graph.facebook.com/v2.6/'+sessionId,
+    qs: {
+      access_token: this.accessToken,
+      fields: FacebookPlatform.PROFILE_FIELDS.join(',')
+    },
+    method: 'GET',
+  }, function(err, response, body) {
+    debug(err, response, body);
+    if (cb) {
+      if (err) {
+        cb(err);
+      } else if (response.body.error) {
+        cb(response.body.error);
+      } else {
+        var profile = JSON.parse(response.body);
+        profile.picture = profile.profile_pic
+        delete profile.profile_pic;
+        cb(null, profile);
+      }
+    }
+  });
+}
 
 module.exports = function(options) {
   var platform = new FacebookPlatform(options);
