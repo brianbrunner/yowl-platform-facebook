@@ -6,7 +6,8 @@ var FacebookPlatform = function(options) {
   this.accessToken = options.accessToken;
   this.webhook = options.webhook;
   this.id = "facebook";
-  this.capabilities = ["say", "actions"];
+  this.capabilities = ["say", "actions", "typing", "profile"];
+  this.default_actions_message = options.default_actions_message || "Make A Choice:"
 };
 
 FacebookPlatform.prototype.attach = function(bot) {
@@ -75,15 +76,14 @@ FacebookPlatform.prototype.finishProcessEvent = function(err, context, event, cb
 };
 
 FacebookPlatform.prototype.createMessage = function(event) {
-  var messageData;
+  var messageData = {};
   if (typeof event === "object") {
-    var messageData = {};
-    if (event.message) {
-      messageData.text = event.message;
-    }
     if (event.actions) {
-      messageData.template_type = "button";
-      var actions = msg.actions.map(function(action) {
+      var payload = {
+        template_type: "button",
+        text: event.message || this.default_actions_message
+      };
+      payload.buttons = event.actions.map(function(action) {
         if (typeof action === "string") {
           return {
             type: "postback",
@@ -110,6 +110,12 @@ FacebookPlatform.prototype.createMessage = function(event) {
           }
         }
       });
+      messageData.attachment = {
+        type: "template",
+        payload: payload
+      }
+    } else if (event.message) {
+      messageData.text = event.message;
     }
   } else {
     messageData = {
@@ -133,12 +139,14 @@ FacebookPlatform.prototype.send = function(context, event, response, cb) {
     body.message = messageData;
   }
 
+  console.log(JSON.stringify(body, null, 2));
   request({
     url: 'https://graph.facebook.com/v2.6/me/messages',
     qs: { access_token: this.accessToken },
     method: 'POST',
     json: body
   }, function(err, response, body) {
+    console.log(body);
     debug(err, response, body);
     if (cb) {
       if (err) {
@@ -151,6 +159,42 @@ FacebookPlatform.prototype.send = function(context, event, response, cb) {
     }
   });  
 };
+
+FacebookPlatform.PROFILE_FIELDS = [
+  "first_name",
+  "last_name",
+  "profile_pic",
+  "locale",
+  "timezone",
+  "gender",
+  "is_payment_enabled",
+  "last_ad_referral"
+]
+
+FacebookPlatform.prototype.profile = function(sessionId, cb) {
+  request({
+    url: 'https://graph.facebook.com/v2.6/'+sessionId,
+    qs: {
+      access_token: this.accessToken,
+      fields: FacebookPlatform.PROFILE_FIELDS.join(',')
+    },
+    method: 'GET',
+  }, function(err, response, body) {
+    debug(err, response, body);
+    if (cb) {
+      if (err) {
+        cb(err);
+      } else if (response.body.error) {
+        cb(response.body.error);
+      } else {
+        var profile = JSON.parse(response.body);
+        profile.picture = profile.profile_pic
+        delete profile.profile_pic;
+        cb(null, profile);
+      }
+    }
+  });
+}
 
 module.exports = function(options) {
   var platform = new FacebookPlatform(options);
